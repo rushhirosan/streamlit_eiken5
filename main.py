@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import random
 
+from collections import defaultdict
+
 file_path = "/Users/igusahiroyuki/PycharmProjects/pythonProject/eiken_quiz/problems1.csv"
 
 
@@ -15,38 +17,23 @@ def display_question(question_index, row):
     st.write(f"**問題 {question_index + 1}**")
     st.write(row['問題文'])
 
-    # 初回のみ選択肢のテキストをランダムに並び替える
-    if f"randomized_choices_{question_index}" not in st.session_state:
-        original_choices = ['A', 'B', 'C', 'D']
-        choices_text = [row["選択肢A"], row["選択肢B"], row["選択肢C"], row["選択肢D"]]
-        randomized_text = random.sample(choices_text, len(choices_text))  # テキストをランダム化
-        st.session_state[f"randomized_choices_{question_index}"] = randomized_text
-    else:
-        randomized_text = st.session_state[f"randomized_choices_{question_index}"]
-
-    # 元のラベル順序でランダム化された選択肢テキストを表示
+    # 選択肢は固定された順序で表示
     choice = st.radio(
         "選択肢を選んでください:",
-        [f"{label}: {text}" for label, text in zip(['A', 'B', 'C', 'D'], randomized_text)],
+        [f"A: {row['選択肢A']}", f"B: {row['選択肢B']}", f"C: {row['選択肢C']}", f"D: {row['選択肢D']}"],
         key=f"question_{question_index}",
         horizontal=True
     )
 
-    return choice, randomized_text
+    return choice[:1]
 
 
 def calc_score(choices, answers):
     score = 0
-    for i, (selected_choice, randomized_text) in enumerate(choices):
-        selected_label = selected_choice[:1]  # ユーザーが選んだ選択肢のラベル
-        correct_answer = answers[i]  # 正解のラベル
-        correct_text = randomized_text[original_choices.index(correct_answer)]  # 正しいテキスト
-        correct_label = original_choices[randomized_text.index(correct_text)]  # テキストに対応する正しいラベル
-
-        if selected_label == correct_label:
+    for i in range(len(choices)):
+        if choices[i] == answers[i]:
             score += 1
-    st.write(f"スコア: {score}")
-
+    st.write(score)
 
 # メインアプリケーション
 def main():
@@ -61,16 +48,15 @@ def main():
 
         randomized_data = st.session_state.randomized_data
 
-        choices = []
-        answers = []
+        id_to_answer = defaultdict(int)
+        id_to_choice = defaultdict(int)
 
         for index, row in randomized_data.iterrows():
-            answers.append(row["正解"])
-            choice, randomized_text = display_question(index, row)
-            choices.append((choice, randomized_text))
-
+            id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
+            choice = display_question(index, row)
+            id_to_choice[int(row["問題ID"]) - 1] = choice
     if st.button("回答を確かめる"):
-        calc_score(choices, answers)
+        calc_score(id_to_choice, id_to_answer)
 
 
 if __name__ == "__main__":
