@@ -1,16 +1,12 @@
 import streamlit as st
 import pandas as pd
-import random
 
 from collections import defaultdict
-
-file_path = "/Users/igusahiroyuki/PycharmProjects/pythonProject/eiken_quiz/problems1.csv"
 
 
 # CSVファイルから英検問題を読み込む
 def load_data(file_path):
     return pd.read_csv(file_path)
-
 
 # 問題を表示する関数
 def display_question(question_index, row):
@@ -27,7 +23,7 @@ def display_question(question_index, row):
 
     return choice[:1]
 
-
+# スコアを計算する関数
 def calc_score(choices, answers):
     score = 0
     for i in range(len(choices)):
@@ -35,9 +31,23 @@ def calc_score(choices, answers):
             score += 1
     st.write(score)
 
-# メインアプリケーション
-def main():
-    st.title("英検問題集")
+
+def page_listening():
+    pass
+
+
+def page_vocabulary():
+    pass
+
+def page_achievement():
+    pass
+
+
+def page_reading(page):
+
+    file_path = "/Users/igusahiroyuki/PycharmProjects/pythonProject/eiken_quiz/problems1.csv"
+
+    st.title(f"英検{page}問題")
 
     if file_path:
         data = load_data(file_path)
@@ -60,4 +70,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    page = st.sidebar.radio("問題/成果を選択してください", ["単語", "文章", "リスニング", "成果"])
+    if page == "単語":
+        page_vocabulary()
+    elif page == "文章":
+        page_reading(page)
+    elif page == "リスニング":
+        page_listening()
+    else:
+        page_achievement()
