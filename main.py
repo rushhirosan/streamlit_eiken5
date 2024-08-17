@@ -8,6 +8,7 @@ from datetime import datetime
 
 problem_file_path = "/Users/igusahiroyuki/PycharmProjects/pythonProject/eiken_quiz/problems1.csv"
 record_file_path = "/Users/igusahiroyuki/PycharmProjects/pythonProject/eiken_quiz/scores.csv"
+audio_file_path = "/Users/igusahiroyuki/PycharmProjects/pythonProject/eiken_quiz/audio1.mp3"
 
 # CSVファイルから英検問題を読み込む
 def load_data(file_path):
@@ -81,9 +82,20 @@ def record_score(date, score):
     df.to_csv(record_file_path, index=False)
 
 
-
+# リスニング
 def page_listening():
-    pass
+    print("HIHII")
+    audio_file_path = "audio1.mp3"
+    try:
+        # 音声ファイルを読み込んで再生
+        audio_file = open(audio_file_path, 'rb').read()
+        st.audio(audio_file, format="audio/mp3")
+    except FileNotFoundError:
+        print("AAA")
+        st.error("音声ファイルが見つかりません。パスを確認してください。")
+    except Exception as e:
+        print("BBB")
+        st.error(f"エラーが発生しました: {e}")
 
 
 def page_vocabulary():
