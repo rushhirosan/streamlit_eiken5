@@ -2,29 +2,32 @@ import streamlit as st
 import pandas as pd
 
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 record_file_path = "apps/score/scores.csv"
 
-def show_score_graph():
-    data = pd.read_csv(record_file_path)
+def show_score_graph(data):
 
     # dateをdatetime形式に変換
     data['date'] = pd.to_datetime(data['date'])
 
-    # グラフの描画
+    # カテゴリごとにデータをフィルタリングしてグラフを描画
+    categories = data['category'].unique()
+
     plt.figure(figsize=(10, 6))
-    plt.plot(data['date'], data['score'], marker='o')
 
-    # グラフのタイトルとラベル
-    plt.title('date and score')
-    plt.xlabel('date')
-    plt.ylabel('score')
+    for category in categories:
+        filtered_data = data[data['category'] == category]
+        plt.plot(filtered_data['date'], filtered_data['score'], marker='o', label=category)
 
-    # dateのフォーマットを調整
-    plt.gca().xaxis.set_major_formatter(plt.matplotlib.dates.DateFormatter('%Y-%m-%d'))
-    plt.gcf().autofmt_xdate()  # dateラベルを傾ける
-
-    # グラフを表示
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    plt.gca().xaxis.set_major_locator(mdates.DayLocator())
+    # グラフの装飾
+    plt.xlabel("Date")
+    plt.ylabel("Score")
+    plt.title("Score by Category over Time")
+    plt.xticks(rotation=45)
+    plt.legend()
     plt.grid(True)
     st.pyplot(plt)
 
@@ -39,4 +42,4 @@ def app(selection):
         st.write("まだscoreが保存されていません。")
 
     if st.button("グラフを見る"):
-        show_score_graph()
+        show_score_graph(data)
