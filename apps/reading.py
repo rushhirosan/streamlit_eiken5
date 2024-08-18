@@ -5,28 +5,24 @@ from datetime import datetime
 from collections import defaultdict
 
 
-problem_file_path = "apps/problem/problems1.csv"
+problem_file_path = "apps/problem/problems_reading.csv"
 record_file_path = "apps/score/scores.csv"
 
 
-# CSVファイルから英検問題を読み込む
-def load_data(file_path):
-    return pd.read_csv(file_path)
+# 記録する
+def record_score(date, score):
 
-# 問題を表示する関数
-def display_question(question_index, row):
-    st.write(f"**問題 {question_index + 1}**")
-    st.write(row['問題文'])
+    try:
+        df = pd.read_csv(record_file_path)
+    except FileNotFoundError:
+        df = pd.DataFrame(columns=["date", "score"])
 
-    # 選択肢は固定された順序で表示
-    choice = st.radio(
-        "選択肢を選んでください:",
-        [f"A: {row['選択肢A']}", f"B: {row['選択肢B']}", f"C: {row['選択肢C']}", f"D: {row['選択肢D']}"],
-        key=f"question_{question_index}",
-        horizontal=True
-    )
+    # 新しいデータを追加
+    new_entry = pd.DataFrame({"date": [date], "score": [score]})
+    df = pd.concat([df, new_entry], ignore_index=True)
 
-    return choice[:1]
+    # CSVに保存
+    df.to_csv(record_file_path, index=False)
 
 
 # scoreを計算する関数
@@ -52,6 +48,27 @@ def calc_score(choices, answers):
     return today, score
 
 
+# CSVファイルから英検問題を読み込む
+def load_data(file_path):
+    return pd.read_csv(file_path)
+
+
+# 問題を表示する関数
+def display_question(question_index, row):
+    st.write(f"**問題 {question_index + 1}**")
+    st.write(row['問題文'])
+
+    # 選択肢は固定された順序で表示
+    choice = st.radio(
+        "選択肢を選んでください:",
+        [f"A: {row['選択肢A']}", f"B: {row['選択肢B']}", f"C: {row['選択肢C']}", f"D: {row['選択肢D']}"],
+        key=f"question_{question_index}",
+        horizontal=True
+    )
+
+    return choice[:1]
+
+
 # 解く問題数を選択させる
 def select_num_questions():
     num_questions = st.selectbox(
@@ -65,24 +82,7 @@ def select_num_questions():
     return num_questions
 
 
-# 記録する
-def record_score(date, score):
-
-    try:
-        df = pd.read_csv(record_file_path)
-    except FileNotFoundError:
-        df = pd.DataFrame(columns=["date", "score"])
-
-    # 新しいデータを追加
-    new_entry = pd.DataFrame({"date": [date], "score": [score]})
-    df = pd.concat([df, new_entry], ignore_index=True)
-
-    # CSVに保存
-    df.to_csv(record_file_path, index=False)
-
-
 def app(page):
-
 
     st.title(f"英検{page}問題")
 
@@ -105,6 +105,7 @@ def app(page):
             id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
             choice = display_question(index, row)
             id_to_choice[int(row["問題ID"]) - 1] = choice
+
     if st.button("提出"):
         day, score = calc_score(id_to_choice, id_to_answer)
         record_score(day, score)
