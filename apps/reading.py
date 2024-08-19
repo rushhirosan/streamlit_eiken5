@@ -29,13 +29,21 @@ def record_score(date, score):
 def calc_score(choices, answers):
     score = 0
     len_choices = len(choices)
+    wrong_questions = []
+    print(choices, answers)
     for k, v in choices.items():
         if choices[k] == answers[k]:
             score += 1
+        else:
+            wrong_questions.append(k + 1)
+
     #today = datetime.today().strftime("%Y年%m月%d日")
     today = datetime.today().strftime("%Y-%m-%d")
     st.write(today + "のscoreは...")
     st.write(score)
+    st.write("間違えた問題IDは")
+    text_to_display = " ".join(f"{i}" for i in sorted(wrong_questions))
+    st.text(text_to_display)
     ratio = score / len_choices
     if score >= len_choices:
         st.write("すごい")
@@ -82,30 +90,66 @@ def select_num_questions():
     return num_questions
 
 
+def select_question_kind():
+    kind_choice = st.radio(
+        "特定の問題IDかランダム問題を解くか選択してください",
+        ["A: ランダム", "B: 特定"],
+        horizontal=True
+    )
+    print(kind_choice)
+    return kind_choice
+
+
+def select_definite_questions():
+    problem_ids = [f"問題ID{i}" for i in range(1, 101)]
+
+    # TODO
+    st.write("間違えた問題")
+
+    # 検索バーを追加
+    search_term = st.text_input("検索:", "")
+
+    # 検索フィルタリング
+    filtered_ids = [pid for pid in problem_ids if search_term.lower() in pid.lower()]
+
+    # ユーザーが複数の問題IDを選択できるようにする
+    selected_ids = st.multiselect(
+        "選択する問題IDを選んでください:",
+        filtered_ids
+    )
+
+    st.write(f"選択された問題ID: {selected_ids}")
+
+
 def app(page):
 
     st.title(f"英検{page}問題")
 
-    nums = select_num_questions()
+    choice = select_question_kind()[:1]
+    if choice == "A":
+        nums = select_num_questions()
 
-    if problem_file_path:
-        data = load_data(problem_file_path)
+        if problem_file_path:
+            data = load_data(problem_file_path)
 
-        # 初回のみデータフレームの行をランダムにシャッフルして保存
-        if "randomized_data" not in st.session_state:
-            st.session_state.randomized_data = data.sample(frac=1).reset_index(drop=True)
+            # 初回のみデータフレームの行をランダムにシャッフルして保存
+            if "randomized_data" not in st.session_state:
+                st.session_state.randomized_data = data.sample(frac=1).reset_index(drop=True)
 
-        randomized_data = st.session_state.randomized_data
-        randomized_data = randomized_data[:nums]
+            randomized_data = st.session_state.randomized_data
+            randomized_data = randomized_data[:nums]
 
-        id_to_answer = defaultdict(int)
-        id_to_choice = defaultdict(int)
+            id_to_answer = defaultdict(int)
+            id_to_choice = defaultdict(int)
 
-        for index, row in randomized_data.iterrows():
-            id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
-            choice = display_question(index, row)
-            id_to_choice[int(row["問題ID"]) - 1] = choice
+            for index, row in randomized_data.iterrows():
+                id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
+                choice = display_question(index, row)
+                id_to_choice[int(row["問題ID"]) - 1] = choice
 
-    if st.button("提出"):
-        day, score = calc_score(id_to_choice, id_to_answer)
-        record_score(day, score)
+        if st.button("提出"):
+            day, score = calc_score(id_to_choice, id_to_answer)
+            #record_score(day, score)
+
+    else:
+        select_definite_questions()

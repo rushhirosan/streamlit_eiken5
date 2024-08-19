@@ -37,9 +37,15 @@ def app(selection):
     st.header("過去のscore")
     try:
         data = pd.read_csv(record_file_path)
-        st.table(data)
     except FileNotFoundError:
         st.write("まだscoreが保存されていません。")
 
+    # TODO: selectbox, default graph
     if st.button("グラフを見る"):
         show_score_graph(data)
+    st.write("\n")
+    if st.button("間違えた問題を見る"):
+        pass
+    st.write("\n")
+    if st.button("表を見る"):
+        st.table(data)
