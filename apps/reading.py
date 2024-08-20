@@ -10,19 +10,36 @@ record_file_path = "apps/score/scores.csv"
 
 
 # 記録する
-def record_score(date, score):
+import pandas as pd
+
+record_file_path = 'apps/score/scores.csv'
+
+def record_score(date, score, category, wrongs_input):
+    # `wrongs_input` は文字列として受け取ります。例: "2 3 5"
+
+    # 入力文字列をリストに変換
+    wrongs = wrongs_input.split()  # スペースで分割してリストにする
+    wrongs = list(map(str, wrongs))  # リストの要素を文字列に変換
 
     try:
+        # CSVファイルを読み込む
         df = pd.read_csv(record_file_path)
     except FileNotFoundError:
-        df = pd.DataFrame(columns=["date", "score"])
+        # CSVファイルが存在しない場合、新しいDataFrameを作成
+        df = pd.DataFrame(columns=["date", "category", "score", "wrongs"])
 
     # 新しいデータを追加
-    new_entry = pd.DataFrame({"date": [date], "score": [score]})
+    new_entry = pd.DataFrame({
+        "date": [date],
+        "category": [category],
+        "score": [score],
+        "wrongs": [', '.join(wrongs)]  # `wrongs` 列をカンマ区切りの文字列に変換
+    })
     df = pd.concat([df, new_entry], ignore_index=True)
 
     # CSVに保存
     df.to_csv(record_file_path, index=False)
+
 
 
 # scoreを計算する関数
@@ -42,8 +59,8 @@ def calc_score(choices, answers):
     st.write(today + "のscoreは...")
     st.write(score)
     st.write("間違えた問題IDは")
-    text_to_display = " ".join(f"{i}" for i in sorted(wrong_questions))
-    st.text(text_to_display)
+    wrongs = " ".join(f"{i}" for i in sorted(wrong_questions))
+    st.text(wrongs)
     ratio = score / len_choices
     if score >= len_choices:
         st.write("すごい")
@@ -53,7 +70,7 @@ def calc_score(choices, answers):
         st.write("頑張れ")
     else:
         st.write("へぼー")
-    return today, score
+    return today, score, wrongs
 
 
 # CSVファイルから英検問題を読み込む
@@ -96,15 +113,34 @@ def select_question_kind():
         ["A: ランダム", "B: 特定"],
         horizontal=True
     )
-    print(kind_choice)
     return kind_choice
 
 
-def select_definite_questions():
+def parse_wrongs(wrongs_str):
+    # 文字列をカンマで分割し、リストに変換
+    return [int(x.strip()) for x in wrongs_str.split(',') if x.strip().isdigit()]
+
+def select_definite_questions(page):
     problem_ids = [f"問題ID{i}" for i in range(1, 101)]
 
-    # TODO
-    st.write("間違えた問題")
+    st.write(f"間違えた{page}問題")
+
+    df = pd.read_csv(record_file_path)
+    wrong_ids = set()
+
+    for index, row in df.iterrows():
+        category = row['category']
+        wrongs_str = row['wrongs']
+        if category != page:
+            continue
+        x = parse_wrongs(wrongs_str)
+        for v in x:
+            wrong_ids.add(v)
+
+    xs = sorted(list(wrong_ids))
+
+    #x = parse_wrongs(df["wrongs"])
+    st.write(f"{', '.join(map(str, xs))}")
 
     # 検索バーを追加
     search_term = st.text_input("検索:", "")
@@ -148,8 +184,8 @@ def app(page):
                 id_to_choice[int(row["問題ID"]) - 1] = choice
 
         if st.button("提出"):
-            day, score = calc_score(id_to_choice, id_to_answer)
-            #record_score(day, score)
+            day, score, wrongs = calc_score(id_to_choice, id_to_answer)
+            record_score(day, score, page, wrongs)
 
     else:
-        select_definite_questions()
+        select_definite_questions(page)
