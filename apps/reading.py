@@ -109,8 +109,8 @@ def select_num_questions():
 
 def select_question_kind():
     kind_choice = st.radio(
-        "特定の問題IDかランダム問題を解くか選択してください",
-        ["A: ランダム", "B: 特定"],
+        "特定の問題IDを指定して復習するかランダム問題を解くか選択してください",
+        ["A: ランダム", "B: 復習"],
         horizontal=True
     )
     return kind_choice
@@ -120,6 +120,7 @@ def parse_wrongs(wrongs_str):
     # 文字列をカンマで分割し、リストに変換
     return [int(x.strip()) for x in wrongs_str.split(',') if x.strip().isdigit()]
 
+
 def select_definite_questions(page):
     problem_ids = [f"問題ID{i}" for i in range(1, 101)]
 
@@ -128,6 +129,7 @@ def select_definite_questions(page):
     df = pd.read_csv(record_file_path)
     wrong_ids = set()
 
+    cnt_rows = 0
     for index, row in df.iterrows():
         category = row['category']
         wrongs_str = row['wrongs']
@@ -136,6 +138,7 @@ def select_definite_questions(page):
         x = parse_wrongs(wrongs_str)
         for v in x:
             wrong_ids.add(v)
+        cnt_rows += 1
 
     xs = sorted(list(wrong_ids))
 
@@ -143,18 +146,21 @@ def select_definite_questions(page):
     st.write(f"{', '.join(map(str, xs))}")
 
     # 検索バーを追加
-    search_term = st.text_input("検索:", "")
-
-    # 検索フィルタリング
-    filtered_ids = [pid for pid in problem_ids if search_term.lower() in pid.lower()]
+    # search_term = st.text_input("検索:", "")
+    #
+    # # 検索フィルタリング
+    # filtered_ids = [pid for pid in problem_ids if search_term.lower() in pid.lower()]
 
     # ユーザーが複数の問題IDを選択できるようにする
     selected_ids = st.multiselect(
         "選択する問題IDを選んでください:",
-        filtered_ids
+        #filtered_ids
+        [x for x in range(1, cnt_rows + 1)]
     )
 
     st.write(f"選択された問題ID: {selected_ids}")
+
+    return set(selected_ids)
 
 
 def app(page):
@@ -188,4 +194,15 @@ def app(page):
             record_score(day, score, page, wrongs)
 
     else:
-        select_definite_questions(page)
+        if problem_file_path:
+            data = load_data(problem_file_path)
+
+        reflection_ids = select_definite_questions(page)
+
+        for index, row in data.iterrows():
+            #id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
+            if index in reflection_ids:
+                choice = display_question(index, row)
+            #id_to_choice[int(row["問題ID"]) - 1] = choice
+
+
