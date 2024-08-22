@@ -47,7 +47,6 @@ def calc_score(choices, answers):
     score = 0
     len_choices = len(choices)
     wrong_questions = []
-    print(choices, answers)
     for k, v in choices.items():
         if choices[k] == answers[k]:
             score += 1
@@ -79,17 +78,29 @@ def load_data(file_path):
 
 
 # 問題を表示する関数
-def display_question(question_index, row):
-    st.write(f"**問題 {question_index + 1}**")
+def display_question(question_index, row, reflection_flag):
+    if not reflection_flag:
+        st.write(f"**問題 {question_index + 1}**")
+    else:
+        st.write(f"**問題ID: {question_index + 1}**")
     st.write(row['問題文'])
 
     # 選択肢は固定された順序で表示
     choice = st.radio(
-        "選択肢を選んでください:",
-        [f"A: {row['選択肢A']}", f"B: {row['選択肢B']}", f"C: {row['選択肢C']}", f"D: {row['選択肢D']}"],
+        label="選択肢を選んでください:",
+        options=[
+            "選んでください",
+            f"A: {row['選択肢A']}",
+            f"B: {row['選択肢B']}",
+            f"C: {row['選択肢C']}",
+            f"D: {row['選択肢D']}"
+        ],
         key=f"question_{question_index}",
         horizontal=True
     )
+
+    if choice == "選んでください":
+        st.warning("選択肢を選んでください。")
 
     return choice[:1]
 
@@ -122,7 +133,6 @@ def parse_wrongs(wrongs_str):
 
 
 def select_definite_questions(page):
-    problem_ids = [f"問題ID{i}" for i in range(1, 101)]
 
     st.write(f"間違えた{page}問題")
 
@@ -135,10 +145,15 @@ def select_definite_questions(page):
         wrongs_str = row['wrongs']
         if category != page:
             continue
-        x = parse_wrongs(wrongs_str)
-        for v in x:
-            wrong_ids.add(v)
-        cnt_rows += 1
+        if len(wrongs_str) == 1:
+            print("HI", wrongs_str)
+            wrong_ids.add(int(wrongs_str))
+            cnt_rows += 1
+        else:
+            x = parse_wrongs(wrongs_str)
+            for v in x:
+                wrong_ids.add(v)
+                cnt_rows += 1
 
     xs = sorted(list(wrong_ids))
 
@@ -168,6 +183,7 @@ def app(page):
     st.title(f"英検{page}問題")
 
     choice = select_question_kind()[:1]
+    reflection_flag = 0
     if choice == "A":
         nums = select_num_questions()
 
@@ -186,23 +202,41 @@ def app(page):
 
             for index, row in randomized_data.iterrows():
                 id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
-                choice = display_question(index, row)
+                choice = display_question(index, row, reflection_flag)
                 id_to_choice[int(row["問題ID"]) - 1] = choice
 
-        if st.button("提出"):
-            day, score, wrongs = calc_score(id_to_choice, id_to_answer)
-            record_score(day, score, page, wrongs)
+        cnt = 0
+        for k, v in id_to_choice.items():
+            if v != "選":
+                cnt += 1
+        if cnt == len(id_to_choice):
+            if st.button("提出"):
+                day, score, wrongs = calc_score(id_to_choice, id_to_answer)
+                record_score(day, score, page, wrongs)
 
     else:
+        reflection_flag = 1
         if problem_file_path:
             data = load_data(problem_file_path)
 
         reflection_ids = select_definite_questions(page)
 
+        id_to_answer = defaultdict(int)
+        id_to_choice = defaultdict(int)
+
         for index, row in data.iterrows():
-            #id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
-            if index in reflection_ids:
-                choice = display_question(index, row)
-            #id_to_choice[int(row["問題ID"]) - 1] = choice
+            if row["問題ID"] in reflection_ids:
+                id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
+                choice = display_question(index, row, reflection_flag)
+                id_to_choice[int(row["問題ID"]) - 1] = choice
+
+        cnt = 0
+        for k, v in id_to_choice.items():
+            if v != "選":
+                cnt += 1
+        if cnt == len(id_to_choice) and reflection_ids:
+            if st.button("提出"):
+                day, score, wrongs = calc_score(id_to_choice, id_to_answer)
+
 
 
