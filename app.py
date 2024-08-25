@@ -1,10 +1,7 @@
-from apps import reading
-from apps import vocabulary
-from apps import listening
-from apps import achivement
 import streamlit as st
+from apps import reading, vocabulary, listening, achivement
 
-# Static pages
+# Define static pages as constants
 PAGES = {
     "単語": vocabulary,
     "文章": reading,
@@ -12,33 +9,27 @@ PAGES = {
     "成果": achivement
 }
 
-
 def main():
     """
-    Main app
+    Main app function for Streamlit.
     """
     st.sidebar.title('問題/成果を選択してください')
 
-    # Sidebar body
+    # Sidebar: Page selection
     selection = st.sidebar.selectbox("選択", list(PAGES.keys()), index=0)
     page = PAGES[selection]
     page.app(selection)
 
-    # Layout adjustment
-    st.sidebar.write('\n')
-    st.sidebar.write('\n')
+    # Add some space in the sidebar
+    st.sidebar.write('\n' * 2)
 
-    # Brief explanation
+    # Sidebar: Brief explanation of each page
     st.sidebar.info(
         """
-        * 単語
-        単語の勉強をする。\n
-        * 文章
-        文章の勉強をする。\n
-        * リスニング
-        リスニングの勉強をする。\n
-        * 成果
-        今までの成果を見る。\n
+        * **単語**: 単語の勉強をする。
+        * **文章**: 文章の勉強をする。
+        * **リスニング**: リスニングの勉強をする。
+        * **成果**: 今までの成果を見る。
         """
     )
 

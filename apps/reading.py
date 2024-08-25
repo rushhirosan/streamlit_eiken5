@@ -1,18 +1,14 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-
 from collections import defaultdict
 
 
-problem_file_path = "apps/problem/problems_reading.csv"
-record_file_path = "apps/score/scores.csv"
+problem_file_id = "apps/problem/problems_reading.csv"
+record_file_id = "apps/score/scores.csv"
+#problem_file_id = "14PmuhBLAv54cUmYeQfo2BqwJHe8FQWUIaZAoJry78So"
+#record_file_id = ""
 
-
-# 記録する
-import pandas as pd
-
-record_file_path = 'apps/score/scores.csv'
 
 def record_score(date, score, category, wrongs_input):
     # `wrongs_input` は文字列として受け取ります。例: "2 3 5"
@@ -23,7 +19,7 @@ def record_score(date, score, category, wrongs_input):
 
     try:
         # CSVファイルを読み込む
-        df = pd.read_csv(record_file_path)
+        df = pd.read_csv(record_file_id)
     except FileNotFoundError:
         # CSVファイルが存在しない場合、新しいDataFrameを作成
         df = pd.DataFrame(columns=["date", "category", "score", "wrongs"])
@@ -38,7 +34,7 @@ def record_score(date, score, category, wrongs_input):
     df = pd.concat([df, new_entry], ignore_index=True)
 
     # CSVに保存
-    df.to_csv(record_file_path, index=False)
+    df.to_csv(record_file_id, index=False)
 
 
 
@@ -136,7 +132,7 @@ def select_definite_questions(page):
 
     st.write(f"間違えた{page}問題")
 
-    df = pd.read_csv(record_file_path)
+    df = pd.read_csv(record_file_id)
     wrong_ids = set()
 
     cnt_rows = 0
@@ -157,7 +153,6 @@ def select_definite_questions(page):
 
     xs = sorted(list(wrong_ids))
 
-    #x = parse_wrongs(df["wrongs"])
     st.write(f"{', '.join(map(str, xs))}")
 
     # 検索バーを追加
@@ -187,8 +182,8 @@ def app(page):
     if choice == "A":
         nums = select_num_questions()
 
-        if problem_file_path:
-            data = load_data(problem_file_path)
+        if problem_file_id:
+            data = load_data(problem_file_id)
 
             # 初回のみデータフレームの行をランダムにシャッフルして保存
             if "randomized_data" not in st.session_state:
@@ -209,15 +204,15 @@ def app(page):
         for k, v in id_to_choice.items():
             if v != "選":
                 cnt += 1
-        if cnt == len(id_to_choice):
+        if cnt == len(id_to_choice) and nums:
             if st.button("提出"):
                 day, score, wrongs = calc_score(id_to_choice, id_to_answer)
                 record_score(day, score, page, wrongs)
 
     else:
         reflection_flag = 1
-        if problem_file_path:
-            data = load_data(problem_file_path)
+        if problem_file_id:
+            data = load_data(problem_file_id)
 
         reflection_ids = select_definite_questions(page)
 
@@ -237,6 +232,3 @@ def app(page):
         if cnt == len(id_to_choice) and reflection_ids:
             if st.button("提出"):
                 day, score, wrongs = calc_score(id_to_choice, id_to_answer)
-
-
-
