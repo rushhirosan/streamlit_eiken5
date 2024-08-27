@@ -1,13 +1,45 @@
 import streamlit as st
 import pandas as pd
+import gspread
+
 from datetime import datetime
 from collections import defaultdict
+from google.oauth2.service_account import Credentials
 
 
-problem_file_id = "apps/problem/problems_reading.csv"
-record_file_id = "apps/score/scores.csv"
-#problem_file_id = "14PmuhBLAv54cUmYeQfo2BqwJHe8FQWUIaZAoJry78So"
-#record_file_id = ""
+PROBLEM_FILE_ID = "apps/problem/problems_reading.csv"
+RECORD_FILE_ID = "apps/score/scores.csv"
+#PROBLEM_FILE_ID = "14PmuhBLAv54cUmYeQfo2BqwJHe8FQWUIaZAoJry78So"
+#RECORD_FILE_ID = ""
+
+
+def load_csv_file(ID):
+    print("TEST")
+
+    # スコープを指定
+    scopes = [
+        'https://www.googleapis.com/auth/spreadsheets',
+        'https://www.googleapis.com/auth/drive'
+    ]
+
+    # サービスアカウントのJSONファイルを使用して認証情報を作成
+    service_account_info = st.secrets["gcp_service_account"]
+
+    # 認証情報を作成
+    creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
+
+    # gspreadクライアントを作成
+    client = gspread.authorize(creds)
+
+    # スプレッドシートの取得
+    spreadsheet_id = ID
+    spreadsheet = client.open_by_key(spreadsheet_id)
+
+    # ワークシートの取得
+    worksheet = spreadsheet.sheet1  # 最初のワークシートを取得
+    data = worksheet.get_all_records()  # データを取得
+    #st.write(data)
+    return data
 
 
 def record_score(date, score, category, wrongs_input):
@@ -17,9 +49,30 @@ def record_score(date, score, category, wrongs_input):
     wrongs = wrongs_input.split()  # スペースで分割してリストにする
     wrongs = list(map(str, wrongs))  # リストの要素を文字列に変換
 
+    scopes = [
+        'https://www.googleapis.com/auth/spreadsheets',
+        'https://www.googleapis.com/auth/drive'
+    ]
+
+    # サービスアカウントのJSONファイルを使用して認証情報を作成
+    service_account_info = st.secrets["gcp_service_account"]
+
+    # 認証情報を作成
+    creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
+
+    # gspreadクライアントを作成
+    client = gspread.authorize(creds)
+
+    spreadsheet_id = '1sVwChcnOnkh6Ypllndc-jV42xqGoaGAu0uKLdHkKEBg'
+    spreadsheet = client.open_by_key(spreadsheet_id)
+
+    # ワークシートの取得
+    worksheet = spreadsheet.sheet1  # 最初のワークシートを取得
+
     try:
         # CSVファイルを読み込む
-        df = pd.read_csv(record_file_id)
+        data = load_csv_file(RECORD_FILE_ID)
+        df = pd.read_csv(data)
     except FileNotFoundError:
         # CSVファイルが存在しない場合、新しいDataFrameを作成
         df = pd.DataFrame(columns=["date", "category", "score", "wrongs"])
@@ -34,8 +87,8 @@ def record_score(date, score, category, wrongs_input):
     df = pd.concat([df, new_entry], ignore_index=True)
 
     # CSVに保存
-    df.to_csv(record_file_id, index=False)
-
+    #df.to_csv(RECORD_FILE_ID, index=False)
+    worksheet.append_row(df)
 
 
 # scoreを計算する関数
@@ -132,7 +185,7 @@ def select_definite_questions(page):
 
     st.write(f"間違えた{page}問題")
 
-    df = pd.read_csv(record_file_id)
+    df = pd.read_csv(RECORD_FILE_ID)
     wrong_ids = set()
 
     cnt_rows = 0
@@ -182,8 +235,9 @@ def app(page):
     if choice == "A":
         nums = select_num_questions()
 
-        if problem_file_id:
-            data = load_data(problem_file_id)
+        if PROBLEM_FILE_ID:
+            #data = load_csv_file(PROBLEM_FILE_ID)
+            data = load_data(PROBLEM_FILE_ID)
 
             # 初回のみデータフレームの行をランダムにシャッフルして保存
             if "randomized_data" not in st.session_state:
@@ -211,8 +265,8 @@ def app(page):
 
     else:
         reflection_flag = 1
-        if problem_file_id:
-            data = load_data(problem_file_id)
+        if PROBLEM_FILE_ID:
+            data = load_data(PROBLEM_FILE_ID)
 
         reflection_ids = select_definite_questions(page)
 

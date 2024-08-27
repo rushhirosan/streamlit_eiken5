@@ -1,11 +1,43 @@
 import streamlit as st
 import pandas as pd
+import gspread
 
 from collections import defaultdict
+from google.oauth2.service_account import Credentials
 
 
 # リスニング
-problem_file_path = "apps/problem/problems_listening.csv"
+PROBLEM_FILE_ID = "apps/problem/problems_listening.csv"
+#PROBLEM_FILE_ID = '1nHONtGQM2Msy9Wos8O0WaQ1oMnZkiflweqFIaaMOyMU'
+
+
+def load_csv_file(ID):
+    print("TEST")
+
+    # スコープを指定
+    scopes = [
+        'https://www.googleapis.com/auth/spreadsheets',
+        'https://www.googleapis.com/auth/drive'
+    ]
+
+    # サービスアカウントのJSONファイルを使用して認証情報を作成
+    service_account_info = st.secrets["gcp_service_account"]
+
+    # 認証情報を作成
+    creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
+
+    # gspreadクライアントを作成
+    client = gspread.authorize(creds)
+
+    # スプレッドシートの取得
+    spreadsheet_id = ID
+    spreadsheet = client.open_by_key(spreadsheet_id)
+
+    # ワークシートの取得
+    worksheet = spreadsheet.sheet1  # 最初のワークシートを取得
+    data = worksheet.get_all_records()  # データを取得
+    #st.write(data)
+    return data
 
 
 # CSVファイルから英検問題を読み込む
@@ -66,8 +98,9 @@ def app(page):
 
     nums = select_num_questions()
 
-    if problem_file_path:
-        data = load_data(problem_file_path)
+    if PROBLEM_FILE_ID:
+        data = load_data(PROBLEM_FILE_ID)
+        #data = load_csv_file(RECORD_FILE_ID)
 
         # 初回のみデータフレームの行をランダムにシャッフルして保存
         if "randomized_data" not in st.session_state:
