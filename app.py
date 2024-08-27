@@ -1,5 +1,5 @@
 import streamlit as st
-from apps import reading, vocabulary, listening, achivement
+#from apps import reading, vocabulary, listening, achivement
 
 # Define static pages as constants
 PAGES = {
