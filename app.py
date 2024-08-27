@@ -3,10 +3,10 @@ import streamlit as st
 
 # Define static pages as constants
 PAGES = {
-    "単語": vocabulary,
-    "文章": reading,
-    "リスニング": listening,
-    "成果": achivement
+    "単語": "A",
+    "文章": "B",
+    "リスニング": "C",
+    "成果": "D"
 }
 
 def main():
