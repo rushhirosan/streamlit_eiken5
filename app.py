@@ -1,12 +1,12 @@
 import streamlit as st
-#from apps import reading, vocabulary, listening, achivement
+from apps import reading, vocabulary, listening, achivement
 
 # Define static pages as constants
 PAGES = {
-    "単語": "A",
-    "文章": "B",
-    "リスニング": "C",
-    "成果": "D"
+    "単語": vocabulary,
+    "文章": reading,
+    "リスニング": listening,
+    "成果": achivement
 }
 
 def main():
@@ -18,7 +18,7 @@ def main():
     # Sidebar: Page selection
     selection = st.sidebar.selectbox("選択", list(PAGES.keys()), index=0)
     page = PAGES[selection]
-    #page.app(selection)
+    page.app(selection)
 
     # Add some space in the sidebar
     st.sidebar.write('\n' * 2)

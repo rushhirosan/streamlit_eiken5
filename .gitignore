@@ -18,6 +18,7 @@ apps/old/
 apps/audio/
 apps/problem/
 apps/score/
+apps/env/
 
 ps.py
 tts.py

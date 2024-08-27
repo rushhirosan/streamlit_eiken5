@@ -246,6 +246,8 @@ def app(page):
             randomized_data = st.session_state.randomized_data
             randomized_data = randomized_data[:nums]
 
+            print(randomized_data)
+
             id_to_answer = defaultdict(int)
             id_to_choice = defaultdict(int)
 
