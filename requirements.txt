@@ -3,4 +3,4 @@ google-auth-oauthlib
 google-auth-httplib2
 gspread
 pandas
-from google.oauth2.service_account import Credentials
+Credentials
