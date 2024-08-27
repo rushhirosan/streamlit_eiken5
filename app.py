@@ -18,7 +18,7 @@ def main():
     # Sidebar: Page selection
     selection = st.sidebar.selectbox("選択", list(PAGES.keys()), index=0)
     page = PAGES[selection]
-    page.app(selection)
+    #page.app(selection)
 
     # Add some space in the sidebar
     st.sidebar.write('\n' * 2)
