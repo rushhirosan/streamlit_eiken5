@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from common import *
+from common import load_csv_file
 
 
 from collections import defaultdict
