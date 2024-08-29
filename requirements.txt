@@ -4,4 +4,4 @@ google-auth-httplib2
 gspread
 pandas
 Credentials
-matplotlib.pyplot
+matplotlib
