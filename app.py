@@ -4,9 +4,9 @@ from apps import reading, vocabulary, listening, achivement
 # Define static pages as constants
 PAGES = {
     "単語": vocabulary,
-    "文章": reading,
-    "リスニング": listening,
-    "成果": achivement
+    "文章": "reading",
+    "リスニング": "listening",
+    "成果": "achivement"
 }
 
 def main():
