@@ -131,6 +131,7 @@ def app(page):
         if PROBLEM_FILE_ID:
             data = load_csv_file(PROBLEM_FILE_ID)
             #data = load_data(PROBLEM_FILE_ID)
+            data = pd.DataFrame(data)
 
             # 初回のみデータフレームの行をランダムにシャッフルして保存
             if "randomized_data" not in st.session_state:
