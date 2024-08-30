@@ -22,3 +22,5 @@ apps/env/
 
 ps.py
 tts.py
+
+.streamlit/

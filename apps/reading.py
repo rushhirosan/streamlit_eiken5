@@ -4,7 +4,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(__file__))
 
-from eiken_common import load_csv_file
+from eiken_common import load_csv_file, calc_score, record_score
 from collections import defaultdict
 
 
@@ -131,53 +131,54 @@ def app(page):
         if PROBLEM_FILE_ID:
             data = load_csv_file(PROBLEM_FILE_ID)
             #data = load_data(PROBLEM_FILE_ID)
-    #
-    #         # 初回のみデータフレームの行をランダムにシャッフルして保存
-    #         if "randomized_data" not in st.session_state:
-    #             st.session_state.randomized_data = data.sample(frac=1).reset_index(drop=True)
-    #
-    #         randomized_data = st.session_state.randomized_data
-    #         randomized_data = randomized_data[:nums]
-    #
-    #         print(randomized_data)
-    #
-    #         id_to_answer = defaultdict(int)
-    #         id_to_choice = defaultdict(int)
-    #
-    #         for index, row in randomized_data.iterrows():
-    #             id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
-    #             choice = display_question(index, row, reflection_flag)
-    #             id_to_choice[int(row["問題ID"]) - 1] = choice
-    #
-    #     cnt = 0
-    #     for k, v in id_to_choice.items():
-    #         if v != "選":
-    #             cnt += 1
-    #     if cnt == len(id_to_choice) and nums:
-    #         if st.button("提出"):
-    #             day, score, wrongs = calc_score(id_to_choice, id_to_answer)
-    #             record_score(day, score, page, wrongs)
-    #
+
+            # 初回のみデータフレームの行をランダムにシャッフルして保存
+            if "randomized_data" not in st.session_state:
+                st.session_state.randomized_data = data.sample(frac=1).reset_index(drop=True)
+
+            randomized_data = st.session_state.randomized_data
+            randomized_data = randomized_data[:nums]
+
+            print(randomized_data)
+
+            id_to_answer = defaultdict(int)
+            id_to_choice = defaultdict(int)
+
+            for index, row in randomized_data.iterrows():
+                id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
+                choice = display_question(index, row, reflection_flag)
+                id_to_choice[int(row["問題ID"]) - 1] = choice
+
+        cnt = 0
+        for k, v in id_to_choice.items():
+            if v != "選":
+                cnt += 1
+        if cnt == len(id_to_choice) and nums:
+            if st.button("提出"):
+                pass
+                #day, score, wrongs = calc_score(id_to_choice, id_to_answer)
+                #record_score(day, score, page, wrongs)
     else:
         reflection_flag = 1
-    #     if PROBLEM_FILE_ID:
-    #         data = load_data(PROBLEM_FILE_ID)
-    #
-    #     reflection_ids = select_definite_questions(page)
-    #
-    #     id_to_answer = defaultdict(int)
-    #     id_to_choice = defaultdict(int)
-    #
-    #     for index, row in data.iterrows():
-    #         if row["問題ID"] in reflection_ids:
-    #             id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
-    #             choice = display_question(index, row, reflection_flag)
-    #             id_to_choice[int(row["問題ID"]) - 1] = choice
-    #
-    #     cnt = 0
-    #     for k, v in id_to_choice.items():
-    #         if v != "選":
-    #             cnt += 1
-    #     if cnt == len(id_to_choice) and reflection_ids:
-    #         if st.button("提出"):
-    #             day, score, wrongs = calc_score(id_to_choice, id_to_answer)
+        if PROBLEM_FILE_ID:
+            data = load_data(PROBLEM_FILE_ID)
+
+        reflection_ids = select_definite_questions(page)
+
+        id_to_answer = defaultdict(int)
+        id_to_choice = defaultdict(int)
+
+        for index, row in data.iterrows():
+            if row["問題ID"] in reflection_ids:
+                id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
+                choice = display_question(index, row, reflection_flag)
+                id_to_choice[int(row["問題ID"]) - 1] = choice
+
+        cnt = 0
+        for k, v in id_to_choice.items():
+            if v != "選":
+                cnt += 1
+        if cnt == len(id_to_choice) and reflection_ids:
+            if st.button("提出"):
+                pass
+                #day, score, wrongs = calc_score(id_to_choice, id_to_answer)
