@@ -156,9 +156,9 @@ def app(page):
                 cnt += 1
         if cnt == len(id_to_choice) and nums:
             if st.button("提出"):
-                pass
-                #day, score, wrongs = calc_score(id_to_choice, id_to_answer)
-                #record_score(day, score, page, wrongs)
+                day, score, wrongs = calc_score(id_to_choice, id_to_answer)
+                st.write(day, score, wrongs)
+                record_score(day, score, page, wrongs)
     else:
         reflection_flag = 1
         if PROBLEM_FILE_ID:
@@ -181,5 +181,4 @@ def app(page):
                 cnt += 1
         if cnt == len(id_to_choice) and reflection_ids:
             if st.button("提出"):
-                pass
-                #day, score, wrongs = calc_score(id_to_choice, id_to_answer)
+                day, score, wrongs = calc_score(id_to_choice, id_to_answer)

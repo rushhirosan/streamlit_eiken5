@@ -1,16 +1,16 @@
 import streamlit as st
 import gspread
 import pandas as pd
+import numpy as np
 
 from datetime import datetime
 from google.oauth2.service_account import Credentials
 
 PROBLEM_FILE_ID = "14PmuhBLAv54cUmYeQfo2BqwJHe8FQWUIaZAoJry78So"
-RECORD_FILE_ID = ""
+RECORD_FILE_ID = "1sVwChcnOnkh6Ypllndc-jV42xqGoaGAu0uKLdHkKEBg"
 
 
 def load_csv_file(ID):
-    print("TEST")
 
     # スコープを指定
     scopes = [
@@ -68,7 +68,10 @@ def record_score(date, score, category, wrongs_input):
     try:
         # CSVファイルを読み込む
         data = load_csv_file(RECORD_FILE_ID)
-        df = pd.read_csv(data)
+        df = pd.DataFrame(data)
+        #print(data)
+        #df = pd.read_csv(data)
+        print(df)
     except FileNotFoundError:
         # CSVファイルが存在しない場合、新しいDataFrameを作成
         df = pd.DataFrame(columns=["date", "category", "score", "wrongs"])
@@ -80,11 +83,20 @@ def record_score(date, score, category, wrongs_input):
         "score": [score],
         "wrongs": [', '.join(wrongs)]  # `wrongs` 列をカンマ区切りの文字列に変換
     })
+    print("after", df, new_entry)
     df = pd.concat([df, new_entry], ignore_index=True)
+
+    # DataFrameの最後の行をリストに変換してGoogle Sheetsに追加
+    row_to_append = new_entry.iloc[0].tolist()
+
+    # すべての要素をPythonの標準的な型に変換
+    row_to_append = [int(item) if isinstance(item, np.int64) else item for item in row_to_append]
+
+    worksheet.append_row(row_to_append)
 
     # CSVに保存
     #df.to_csv(RECORD_FILE_ID, index=False)
-    worksheet.append_row(df)
+    #worksheet.append_row(df)
 
 
 # scoreを計算する関数
