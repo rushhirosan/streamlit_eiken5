@@ -18,8 +18,6 @@ def load_csv_file(ID):
         'https://www.googleapis.com/auth/drive'
     ]
 
-    st.write(st.secrets)
-
     # サービスアカウントのJSONファイルを使用して認証情報を作成
     service_account_info = st.secrets["gcp_service_account"]
 
