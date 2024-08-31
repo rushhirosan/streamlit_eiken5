@@ -5,7 +5,7 @@ from apps import reading, vocabulary, listening, achivement
 PAGES = {
     "単語": vocabulary,
     "文章": reading,
-    "リスニング": "listening",
+    "リスニング": listening,
     "成果": "achivement"
 }
 
