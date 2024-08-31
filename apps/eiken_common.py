@@ -41,6 +41,8 @@ def load_csv_file(ID):
 def record_score(date, score, category, wrongs_input):
     # `wrongs_input` は文字列として受け取ります。例: "2 3 5"
 
+    st.write(date, score, category, wrongs_input)
+
     # 入力文字列をリストに変換
     wrongs = wrongs_input.split()  # スペースで分割してリストにする
     wrongs = list(map(str, wrongs))  # リストの要素を文字列に変換
