@@ -21,16 +21,10 @@ SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
 service_account_info = st.secrets["gcp_service_account"]
 credentials = service_account.Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
 drive_service = build('drive', 'v3', credentials=credentials)
+
 # リスニング
-#PROBLEM_FILE_ID = "apps/problem/problems_listening.csv"
-PROBLEM_FILE_ID = '1nHONtGQM2Msy9Wos8O0WaQ1oMnZkiflweqFIaaMOyMU'
-#FILE_ID = "180E5Ri2fZ_ibknzVVl1LLiWRUvEJHMH0"
 FOLDER_ID = "1g3QmKiqP3iCOa_GQcRwL-rZ3DCI3Mf-Z"
-
-
-# CSVファイルから英検問題を読み込む
-def load_data(file_path):
-    return pd.read_csv(file_path)
+PROBLEM_FILE_ID = '1nHONtGQM2Msy9Wos8O0WaQ1oMnZkiflweqFIaaMOyMU'
 
 
 def list_files_in_folder(folder_id=None):
@@ -110,7 +104,6 @@ def app(page):
     nums = select_num_questions()
 
     if PROBLEM_FILE_ID:
-        #data = load_data(PROBLEM_FILE_ID)
         data = load_csv_file(PROBLEM_FILE_ID)
         data = pd.DataFrame(data)
 

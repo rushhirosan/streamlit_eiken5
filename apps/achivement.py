@@ -5,12 +5,27 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
-record_file_path = "apps/score/scores.csv"
+import sys
+import os
+sys.path.append(os.path.dirname(__file__))
+
+from eiken_common import load_csv_file
+
+
+#record_file_path = "apps/score/scores.csv"
+RECORD_FILE_ID = "1sVwChcnOnkh6Ypllndc-jV42xqGoaGAu0uKLdHkKEBg"
+
 
 def show_score_graph(data):
 
     # dateをdatetime形式に変換
     data['date'] = pd.to_datetime(data['date'])
+
+    t = {
+        "単語/熟語": "Vocabulary",
+        "文章": "Reading",
+        "リスニング": "Listening"
+    }
 
     # カテゴリごとにデータをフィルタリングしてグラフを描画
     categories = data['category'].unique()
@@ -19,7 +34,7 @@ def show_score_graph(data):
 
     for category in categories:
         filtered_data = data[data['category'] == category]
-        plt.plot(filtered_data['date'], filtered_data['score'], marker='o', label=category)
+        plt.plot(filtered_data['date'], filtered_data['score'], marker='o', label=t[category])
 
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     plt.gca().xaxis.set_major_locator(mdates.DayLocator())
@@ -54,14 +69,15 @@ def app(selection):
     # 保存されたscoreの一覧表示
     st.header("過去のscoreグラフ")
     try:
-        data = pd.read_csv(record_file_path)
+        data = load_csv_file(RECORD_FILE_ID)
+        data = pd.DataFrame(data)
     except FileNotFoundError:
         st.write("まだscoreが保存されていません。")
 
     show_score_graph(data)
     st.write("\n")
     st.write("過去のscoreテーブル")
-    data_transposed =data.transpose()
+    data_transposed = data.transpose()
     # Streamlitで表示
     st.table(data_transposed)
-    delete_score()
+    #delete_score()
