@@ -94,37 +94,35 @@ def record_score(date, score, category, wrongs_input):
 
 # scoreを計算する関数
 def calc_score(choices, answers):
-    score = 0
+    count = 0
     len_choices = len(choices)
     wrong_questions = []
     for k, v in choices.items():
         if choices[k] == answers[k]:
-            score += 1
+            count += 1
         else:
             wrong_questions.append(k + 1)
+    score = int(100 * (count / len_choices))
 
-    #today = datetime.today().strftime("%Y年%m月%d日")
     today = datetime.today().strftime("%Y-%m-%d")
-    st.write(today + "のscoreは...")
-    st.write(score)
-    st.write("間違えた問題IDは")
-    wrongs = " ".join(f"{i}" for i in sorted(wrong_questions))
-    st.text(wrongs)
-    ratio = score / len_choices
-    if score >= len_choices:
-        st.write("すごい")
-    elif 0.7 <= ratio <= 0.9:
-        st.write("まあまあ")
-    elif 0.3 <= ratio < 0.7:
-        st.write("頑張れ")
+    st.write(today + "のスコアは...")
+    st.write(str(score) + "点")
+    #ratio = score / len_choices
+    wrongs = ""
+    if len(wrong_questions) >= 1:
+        st.write("間違えた問題IDは...")
+        wrongs = " ".join(f"{i}" for i in sorted(wrong_questions))
+        st.text(wrongs)
+    if count >= len_choices:
+        st.write("満点おめでとう！！")
+        st.balloons()
+    elif 70 <= score <= 90:
+        st.write("まあまあの出来だね、次は満点目指して頑張ろう！間違えた問題はパパかママに聞いてね。")
+    elif 30 <= score < 70:
+        st.write("もっと頑張れ！復習して、間違えた問題はパパかママに聞いてね。")
     else:
-        st.write("へぼー")
+        st.write("へばへぼー")
     return today, score, wrongs
-
-
-# CSVファイルから英検問題を読み込む
-# def load_data(file_path):
-#     return pd.read_csv(file_path)
 
 
 # 問題を表示する関数
@@ -155,12 +153,21 @@ def display_question(question_index, row, reflection_flag):
     return choice[:1]
 
 
+def clear_selectbox_state():
+    # ページ切り替え時にselectboxの値をリセット
+    st.session_state['num_questions'] = " "  # 空の状態にリセット
+
 # 解く問題数を選択させる
 def select_num_questions():
+
+    if 'num_questions' not in st.session_state:
+        st.session_state['num_questions'] = " "
+
     num_questions = st.selectbox(
         "解く問題数を選んでください:",
-        options=[" ", 1, 3, 5],
-        index=0  # デフォルトで選択される値のインデックス（0=1問）
+        options=[" "] + [x for x in range(1, 101) if 100 % x == 0],
+        index=0,  # デフォルトで選択される値のインデックス（0=1問）
+        key="num_questions"
     )
     if num_questions == " ":
         num_questions = 0
@@ -170,7 +177,7 @@ def select_num_questions():
 
 def select_question_kind():
     kind_choice = st.radio(
-        "特定の問題IDを指定して復習するかランダム問題を解くか選択してください",
+        "ランダムに問題を解くか特定の問題IDを指定して復習するか選択してください",
         ["A: ランダム", "B: 復習"],
         horizontal=True
     )
@@ -186,7 +193,8 @@ def select_definite_questions(page):
 
     st.write(f"間違えた{page}問題")
 
-    df = pd.read_csv(RECORD_FILE_ID)
+    df = load_csv_file(RECORD_FILE_ID)
+    df = pd.DataFrame(df)
     wrong_ids = set()
 
     cnt_rows = 0
@@ -208,12 +216,6 @@ def select_definite_questions(page):
 
     st.write(f"{', '.join(map(str, xs))}")
 
-    # 検索バーを追加
-    # search_term = st.text_input("検索:", "")
-    #
-    # # 検索フィルタリング
-    # filtered_ids = [pid for pid in problem_ids if search_term.lower() in pid.lower()]
-
     # ユーザーが複数の問題IDを選択できるようにする
     selected_ids = st.multiselect(
         "選択する問題IDを選んでください:",
@@ -232,6 +234,7 @@ def load_problem(ID, page):
     reflection_flag = 0
     id_to_answer = defaultdict(int)
     id_to_choice = defaultdict(int)
+    options = ["A", "B", "C", "D"]
 
     if choice == "A":
         nums = select_num_questions()
@@ -246,7 +249,6 @@ def load_problem(ID, page):
 
             randomized_data = st.session_state.randomized_data
             randomized_data = randomized_data[:nums]
-            print(randomized_data)
 
             for index, row in randomized_data.iterrows():
                 id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
@@ -255,22 +257,20 @@ def load_problem(ID, page):
 
         cnt = 0
         for k, v in id_to_choice.items():
-            if v != "選":
+            if v not in options:
                 cnt += 1
         if cnt == len(id_to_choice) and nums:
             if st.button("提出"):
                 day, score, wrongs = calc_score(id_to_choice, id_to_answer)
-                st.write(day, score, wrongs)
+                #st.write(day, score, wrongs)
                 record_score(day, score, page, wrongs)
     else:
         reflection_flag = 1
-        if ID:
+        if RECORD_FILE_ID:
             data = load_csv_file(ID)
+            data = pd.DataFrame(data)
 
         reflection_ids = select_definite_questions(page)
-
-        id_to_answer = defaultdict(int)
-        id_to_choice = defaultdict(int)
 
         for index, row in data.iterrows():
             if row["問題ID"] in reflection_ids:
@@ -280,7 +280,7 @@ def load_problem(ID, page):
 
         cnt = 0
         for k, v in id_to_choice.items():
-            if v != "選":
+            if v not in options:
                 cnt += 1
         if cnt == len(id_to_choice) and reflection_ids:
             if st.button("提出"):
