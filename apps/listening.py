@@ -55,6 +55,7 @@ def display_listening_question(question_index, row, file_map):
 
 def app(page):
     st.title(f"英検{page}問題")
+    st.write("▶ボタンを押して英語を聞いてから、選択肢から解答を選択してください。")
 
     choice = select_question_kind()[:1]
     reflection_flag = 0
@@ -89,7 +90,7 @@ def app(page):
 
         cnt = 0
         for k, v in id_to_choice.items():
-            if v not in options:
+            if v in options:
                 cnt += 1
         if cnt == len(id_to_choice) and nums:
             if st.button("提出"):
@@ -112,8 +113,8 @@ def app(page):
 
         cnt = 0
         for k, v in id_to_choice.items():
-            if v not in options:
+            if v in options:
                 cnt += 1
         if cnt == len(id_to_choice) and reflection_ids:
             if st.button("提出"):
-                day, score, wrongs = calc_score(id_to_choice, id_to_answer)
+                calc_score(id_to_choice, id_to_answer)

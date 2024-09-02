@@ -189,15 +189,17 @@ def parse_wrongs(wrongs_str):
     return [int(x.strip()) for x in wrongs_str.split(',') if x.strip().isdigit()]
 
 
-def select_definite_questions(page):
+def select_definite_questions(page, ID):
 
     st.write(f"間違えた{page}問題")
 
     df = load_csv_file(RECORD_FILE_ID)
     df = pd.DataFrame(df)
+    df2 = load_csv_file(ID)
+    df2 = pd.DataFrame(df2)
     wrong_ids = set()
 
-    cnt_rows = 0
+    cnt_wrong_rows = 0
     for index, row in df.iterrows():
         category = row['category']
         wrongs_str = row['wrongs']
@@ -205,22 +207,22 @@ def select_definite_questions(page):
             continue
         if len(wrongs_str) == 1:
             wrong_ids.add(int(wrongs_str))
-            cnt_rows += 1
+            cnt_wrong_rows += 1
         else:
             x = parse_wrongs(wrongs_str)
             for v in x:
                 wrong_ids.add(v)
-                cnt_rows += 1
+                cnt_wrong_rows += 1
+
 
     xs = sorted(list(wrong_ids))
-
     st.write(f"{', '.join(map(str, xs))}")
 
     # ユーザーが複数の問題IDを選択できるようにする
     selected_ids = st.multiselect(
         "選択する問題IDを選んでください:",
         #filtered_ids
-        [x for x in range(1, cnt_rows + 1)]
+        [x for x in range(1, len(df2) + 1)]
     )
 
     st.write(f"選択された問題ID: {selected_ids}")
@@ -257,7 +259,7 @@ def load_problem(ID, page):
 
         cnt = 0
         for k, v in id_to_choice.items():
-            if v not in options:
+            if v in options:
                 cnt += 1
         if cnt == len(id_to_choice) and nums:
             if st.button("提出"):
@@ -270,7 +272,7 @@ def load_problem(ID, page):
             data = load_csv_file(ID)
             data = pd.DataFrame(data)
 
-        reflection_ids = select_definite_questions(page)
+        reflection_ids = select_definite_questions(page, ID)
 
         for index, row in data.iterrows():
             if row["問題ID"] in reflection_ids:
@@ -280,8 +282,8 @@ def load_problem(ID, page):
 
         cnt = 0
         for k, v in id_to_choice.items():
-            if v not in options:
+            if v in options:
                 cnt += 1
         if cnt == len(id_to_choice) and reflection_ids:
             if st.button("提出"):
-                day, score, wrongs = calc_score(id_to_choice, id_to_answer)
+                calc_score(id_to_choice, id_to_answer)
