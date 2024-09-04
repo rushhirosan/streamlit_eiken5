@@ -15,7 +15,7 @@ def display_sidebar():
     """
     Displays the sidebar with page selection and descriptions.
     """
-    st.sidebar.title('英検５級レベルの問題にチャレンジ❗\n問題か成果を選択してください')
+    st.sidebar.title('英検５級レベルの問題にチャレンジ❗\n問題か成果を選択してください✏')
     st.sidebar.write('\n' * 2)
 
     # Sidebar: Page selection
@@ -27,6 +27,7 @@ def display_sidebar():
         * **単語/熟語**: 単語/熟語の問題を解く。
         * **文章**: 文章の問題を解く。
         * **リスニング**: リスニングの問題を解く。
+        * **並び替え**: 並び替えの問題を解く。
         * **成果**: 今までの成果を見る。
         """
     )

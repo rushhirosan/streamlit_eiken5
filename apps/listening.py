@@ -1,22 +1,13 @@
 import streamlit as st
 import pandas as pd
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 import io
 from collections import defaultdict
 from eiken_common import load_csv_file, select_num_questions, select_question_kind, select_definite_questions, \
-    calc_score, record_score
-
-# Google Drive API の設定
-SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
-service_account_info = st.secrets["gcp_service_account"]
-credentials = service_account.Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
-drive_service = build('drive', 'v3', credentials=credentials)
+    calc_score, record_score, drive_service, RECORD_FILE_ID
 
 # 定数
 FOLDER_ID = "1g3QmKiqP3iCOa_GQcRwL-rZ3DCI3Mf-Z"
-RECORD_FILE_ID = "1sVwChcnOnkh6Ypllndc-jV42xqGoaGAu0uKLdHkKEBg"
 PROBLEM_FILE_ID = '1nHONtGQM2Msy9Wos8O0WaQ1oMnZkiflweqFIaaMOyMU'
 
 
@@ -39,9 +30,13 @@ def load_listening_file(file_id):
     st.audio(file_data, format='audio/mpeg')
 
 
-def display_listening_question(question_index, row, file_map):
+def display_listening_question(question_index, row, file_map, reflection_flag):
     """問題と選択肢を表示し、選択された回答を返す"""
-    st.write(f"**問題 {question_index + 1}**")
+    if not reflection_flag:
+        st.write(f"**問題 {question_index + 1}**")
+    else:
+        st.write(f"**問題ID: {question_index + 1}**")
+    st.write(row['問題文'])
     load_listening_file(file_map[f"audio{row['問題ID']}.mp3"])
 
     choice = st.radio(
@@ -55,7 +50,7 @@ def display_listening_question(question_index, row, file_map):
 
 def app(page):
     st.title(f"英検{page}問題")
-    st.write("▶ボタンを押して英語を聞いてから、選択肢から解答を選択してください。")
+    st.write("▶ボタンを押して英語を聞いてから、選択肢から解答を選択してください📝")
 
     choice = select_question_kind()[:1]
     reflection_flag = 0
@@ -85,7 +80,7 @@ def app(page):
 
             for index, row in randomized_data.iterrows():
                 id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
-                choice = display_listening_question(index, row, file_map)
+                choice = display_listening_question(index, row, file_map, reflection_flag)
                 id_to_choice[int(row["問題ID"]) - 1] = choice
 
         cnt = 0
@@ -100,15 +95,15 @@ def app(page):
     else:
         reflection_flag = 1
         if RECORD_FILE_ID:
-            data = load_csv_file(ID)
+            data = load_csv_file(PROBLEM_FILE_ID)
             data = pd.DataFrame(data)
 
-        reflection_ids = select_definite_questions(page)
+        reflection_ids = select_definite_questions(page, PROBLEM_FILE_ID)
 
         for index, row in data.iterrows():
             if row["問題ID"] in reflection_ids:
                 id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
-                choice = display_listening_question(index, row, reflection_flag)
+                choice = display_listening_question(index, row, file_map, reflection_flag)
                 id_to_choice[int(row["問題ID"]) - 1] = choice
 
         cnt = 0

@@ -5,27 +5,27 @@ import numpy as np
 
 from datetime import datetime
 from google.oauth2.service_account import Credentials
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 from collections import defaultdict
+
+# Google Drive API の設定
+SCOPES = [
+    'https://www.googleapis.com/auth/spreadsheets',
+    'https://www.googleapis.com/auth/drive.readonly',
+    'https://www.googleapis.com/auth/drive'
+     ]
+service_account_info = st.secrets["gcp_service_account"]
+credentials = service_account.Credentials.from_service_account_info(service_account_info, scopes=SCOPES)
+drive_service = build('drive', 'v3', credentials=credentials)
 
 RECORD_FILE_ID = "1sVwChcnOnkh6Ypllndc-jV42xqGoaGAu0uKLdHkKEBg"
 
 
 def load_csv_file(ID):
 
-    # スコープを指定
-    scopes = [
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/drive'
-    ]
-
-    # サービスアカウントのJSONファイルを使用して認証情報を作成
-    service_account_info = st.secrets["gcp_service_account"]
-
-    # 認証情報を作成
-    creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
-
     # gspreadクライアントを作成
-    client = gspread.authorize(creds)
+    client = gspread.authorize(credentials)
 
     # スプレッドシートの取得
     spreadsheet_id = ID
@@ -114,14 +114,14 @@ def calc_score(choices, answers):
         wrongs = " ".join(f"{i}" for i in sorted(wrong_questions))
         st.text(wrongs)
     if count >= len_choices:
-        st.write("満点おめでとう！！")
+        st.write("🈴満点おめでとう！！💯")
         st.balloons()
     elif 70 <= score <= 90:
-        st.write("まあまあの出来だね、次は満点目指して頑張ろう！間違えた問題はパパかママに聞いてね。")
+        st.write("🉑まあまあの出来だね、次は満点目指して頑張ろう！間違えた問題はパパかママに聞いてね。")
     elif 30 <= score < 70:
-        st.write("もっと頑張れ！復習して、間違えた問題はパパかママに聞いてね。")
+        st.write("💦もっと頑張れ！復習して、間違えた問題は👨か👩に聞いてね。")
     else:
-        st.write("へばへぼー")
+        st.write("😱へばへぼー😱")
     return today, score, wrongs
 
 
@@ -205,8 +205,8 @@ def select_definite_questions(page, ID):
         wrongs_str = row['wrongs']
         if category != page:
             continue
-        if len(wrongs_str) == 1:
-            wrong_ids.add(int(wrongs_str))
+        if len(str(wrongs_str)) == 1:
+            wrong_ids.add(wrongs_str)
             cnt_wrong_rows += 1
         else:
             x = parse_wrongs(wrongs_str)

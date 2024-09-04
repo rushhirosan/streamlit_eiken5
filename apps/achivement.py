@@ -1,12 +1,10 @@
 import streamlit as st
 import pandas as pd
-import os
+import gspread
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from eiken_common import load_csv_file
+from eiken_common import load_csv_file, RECORD_FILE_ID, credentials
 
-# 定数
-RECORD_FILE_ID = "1sVwChcnOnkh6Ypllndc-jV42xqGoaGAu0uKLdHkKEBg"
 
 CATEGORY_TRANSLATION = {
     "単語/熟語": "Vocabulary",
@@ -40,22 +38,34 @@ def show_score_graph(data):
     st.pyplot(plt)
 
 
-def delete_score(record_file_path):
+def delete_rows():
+    # gspreadクライアントを作成
+    client = gspread.authorize(credentials)
+
+    # スプレッドシートID
+    spreadsheet_id = RECORD_FILE_ID
+
+    # スプレッドシートを開く
+    spreadsheet = client.open_by_key(spreadsheet_id)
+    worksheet = spreadsheet.sheet1  # 最初のシートを取得
+
+    # ヘッダーを残し、2行目以降を削除
+    worksheet.delete_rows(2, worksheet.row_count)
+
+
+def delete_confirm(record_file_path):
     """スコアの保存されたファイルを削除する"""
     confirm_delete = st.button("成果を削除してリスタートする")
 
     if confirm_delete:
         st.warning("本当に成果を削除しますか？この操作は元に戻せません。")
         if st.button("はい、削除します"):
-            if os.path.exists(record_file_path):
-                os.remove(record_file_path)
-                st.success(f"ファイル '{record_file_path}' を削除しました。")
-            else:
-                st.error(f"ファイル '{record_file_path}' が見つかりません。")
+            delete_rows()
 
 
 def app(page):
-    st.header("過去のスコアグラフ")
+    st.header(f"過去の{page}グラフ")
+    st.write("今までの成果を確認してみよう👀")
 
     try:
         data = pd.DataFrame(load_csv_file(RECORD_FILE_ID))
@@ -63,6 +73,7 @@ def app(page):
             show_score_graph(data)
             st.write("\n")
             st.write("過去のスコアテーブル")
+            st.write("※日付、カテゴリ、スコア、間違った問題ID")
             st.table(data.transpose())
         else:
             st.write("まだスコアが保存されていません。")
