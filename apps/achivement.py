@@ -9,7 +9,8 @@ from eiken_common import load_csv_file, RECORD_FILE_ID, credentials
 CATEGORY_TRANSLATION = {
     "単語/熟語": "Vocabulary",
     "文章": "Reading",
-    "リスニング": "Listening"
+    "リスニング": "Listening",
+    "並び替え": "Ordering"
 }
 
 
@@ -53,14 +54,12 @@ def delete_rows():
     worksheet.delete_rows(2, worksheet.row_count)
 
 
-def delete_confirm(record_file_path):
+def delete_confirm():
     """スコアの保存されたファイルを削除する"""
     confirm_delete = st.button("成果を削除してリスタートする")
 
     if confirm_delete:
-        st.warning("本当に成果を削除しますか？この操作は元に戻せません。")
-        if st.button("はい、削除します"):
-            delete_rows()
+        delete_rows()
 
 
 def app(page):
@@ -68,14 +67,18 @@ def app(page):
     st.write("今までの成果を確認してみよう👀")
 
     try:
-        data = pd.DataFrame(load_csv_file(RECORD_FILE_ID))
-        if not data.empty:
-            show_score_graph(data)
+        df = pd.DataFrame(load_csv_file(RECORD_FILE_ID))
+
+        if not df.empty:
+            show_score_graph(df)
             st.write("\n")
             st.write("過去のスコアテーブル")
             st.write("※日付、カテゴリ、スコア、間違った問題ID")
-            st.table(data.transpose())
+            df_transposed = df.transpose().astype(str)
+            st.table(df_transposed)
         else:
             st.write("まだスコアが保存されていません。")
     except FileNotFoundError:
         st.write("まだスコアが保存されていません。")
+
+    delete_confirm()

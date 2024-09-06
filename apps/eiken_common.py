@@ -38,27 +38,13 @@ def load_csv_file(ID):
 
 
 def record_score(date, score, category, wrongs_input):
-    # `wrongs_input` は文字列として受け取ります。例: "2 3 5"
-
-    # st.write(date, score, category, wrongs_input)
 
     # 入力文字列をリストに変換
     wrongs = wrongs_input.split()  # スペースで分割してリストにする
     wrongs = list(map(str, wrongs))  # リストの要素を文字列に変換
 
-    scopes = [
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/drive'
-    ]
-
-    # サービスアカウントのJSONファイルを使用して認証情報を作成
-    service_account_info = st.secrets["gcp_service_account"]
-
-    # 認証情報を作成
-    creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
-
     # gspreadクライアントを作成
-    client = gspread.authorize(creds)
+    client = gspread.authorize(credentials)
 
     spreadsheet_id = RECORD_FILE_ID
     spreadsheet = client.open_by_key(spreadsheet_id)
@@ -164,7 +150,7 @@ def select_num_questions():
         st.session_state['num_questions'] = " "
 
     num_questions = st.selectbox(
-        "解く問題数を選んでください:",
+        "解く問題数を選んでください:（0から100の内、100の約数のみ選択できます）",
         options=[" "] + [x for x in range(1, 101) if 100 % x == 0],
         index=0,  # デフォルトで選択される値のインデックス（0=1問）
         key="num_questions"

@@ -51,6 +51,7 @@ def display_listening_question(question_index, row, file_map, reflection_flag):
 def app(page):
     st.title(f"英検{page}問題")
     st.write("▶ボタンを押して英語を聞いてから、選択肢から解答を選択してください📝")
+    st.write("※ボタンが現れるまで少し時間がかかる場合があります。")
 
     choice = select_question_kind()[:1]
     reflection_flag = 0
