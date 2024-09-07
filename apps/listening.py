@@ -66,6 +66,7 @@ def app(page):
         st.session_state.page_initialized = page
 
     file_map = list_files_in_folder(FOLDER_ID)
+    print(file_map)
 
     if choice == "A":
         nums = select_num_questions()
