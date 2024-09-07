@@ -18,8 +18,9 @@ def list_files_in_folder(folder_id=None):
     return {item['name']: item['id'] for item in results.get('files', [])}
 
 
-def load_listening_file(file_id):
-    """Google Drive から音声ファイルをダウンロードし、再生する"""
+@st.cache_data
+def download_listening_file(file_id):
+    """Google Drive から音声ファイルをダウンロードする"""
     request = drive_service.files().get_media(fileId=file_id)
     file_data = io.BytesIO()
     downloader = MediaIoBaseDownload(file_data, request)
@@ -27,6 +28,12 @@ def load_listening_file(file_id):
     while not done:
         status, done = downloader.next_chunk()
     file_data.seek(0)
+    return file_data
+
+
+def load_listening_file(file_id):
+    """キャッシュから音声ファイルを取得して再生する"""
+    file_data = download_listening_file(file_id)
     st.audio(file_data, format='audio/mpeg')
 
 
@@ -37,15 +44,59 @@ def display_listening_question(question_index, row, file_map, reflection_flag):
     else:
         st.write(f"**問題ID: {question_index + 1}**")
     st.write(row['問題文'])
-    load_listening_file(file_map[f"audio{row['問題ID']}.mp3"])
 
+    # 音声ファイルのロードと再生
+    file_id = file_map[f"audio{row['問題ID']}.mp3"]
+    load_listening_file(file_id)
+
+    # 選択肢は固定された順序で表示
     choice = st.radio(
-        "選択肢を選んでください:",
-        [f"A: {row['選択肢A']}", f"B: {row['選択肢B']}", f"C: {row['選択肢C']}", f"D: {row['選択肢D']}"],
+        label="選択肢を選んでください:",
+        options=[
+            "選んでください",
+            f"A: {row['選択肢A']}",
+            f"B: {row['選択肢B']}",
+            f"C: {row['選択肢C']}",
+            f"D: {row['選択肢D']}"
+        ],
         key=f"question_{question_index}",
         horizontal=True
     )
-    return choice[:1]  # 選択肢の頭文字 (A, B, C, D) を返す
+
+    if choice == "選んでください":
+        st.warning("選択肢を選んでください。")
+
+    return choice[:1]
+
+
+# def load_listening_file(file_id):
+#     """Google Drive から音声ファイルをダウンロードし、再生する"""
+#     request = drive_service.files().get_media(fileId=file_id)
+#     file_data = io.BytesIO()
+#     downloader = MediaIoBaseDownload(file_data, request)
+#     done = False
+#     while not done:
+#         status, done = downloader.next_chunk()
+#     file_data.seek(0)
+#     st.audio(file_data, format='audio/mpeg')
+#
+#
+# def display_listening_question(question_index, row, file_map, reflection_flag):
+#     """問題と選択肢を表示し、選択された回答を返す"""
+#     if not reflection_flag:
+#         st.write(f"**問題 {question_index + 1}**")
+#     else:
+#         st.write(f"**問題ID: {question_index + 1}**")
+#     st.write(row['問題文'])
+#     load_listening_file(file_map[f"audio{row['問題ID']}.mp3"])
+#
+#     choice = st.radio(
+#         "選択肢を選んでください:",
+#         [f"A: {row['選択肢A']}", f"B: {row['選択肢B']}", f"C: {row['選択肢C']}", f"D: {row['選択肢D']}"],
+#         key=f"question_{question_index}",
+#         horizontal=True
+#     )
+#     return choice[:1]  # 選択肢の頭文字 (A, B, C, D) を返す
 
 
 def app(page):
@@ -66,7 +117,6 @@ def app(page):
         st.session_state.page_initialized = page
 
     file_map = list_files_in_folder(FOLDER_ID)
-    print(file_map)
 
     if choice == "A":
         nums = select_num_questions()
