@@ -5,3 +5,4 @@ gspread
 pandas
 Credentials
 matplotlib
+google-api-python-client
