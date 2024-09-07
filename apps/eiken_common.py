@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 
 from datetime import datetime
-from google.oauth2.service_account import Credentials
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from collections import defaultdict
@@ -93,7 +92,6 @@ def calc_score(choices, answers):
     today = datetime.today().strftime("%Y-%m-%d")
     st.write(today + "のスコアは...")
     st.write(str(score) + "点")
-    #ratio = score / len_choices
     wrongs = ""
     if len(wrong_questions) >= 1:
         st.write("間違えた問題IDは...")
