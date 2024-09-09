@@ -7,8 +7,8 @@ import os
 sys.path.append(os.path.dirname(__file__))
 
 from collections import defaultdict
-from eiken_common import load_csv_file, select_num_questions, select_question_kind, select_definite_questions, \
-    calc_score, record_score, drive_service, RECORD_FILE_ID
+from eiken_common import load_csv_file, select_num_questions, select_question_kind, \
+    select_definite_questions, drive_service, RECORD_FILE_ID, submit_answer
 
 # 定数
 FOLDER_ID = "1g3QmKiqP3iCOa_GQcRwL-rZ3DCI3Mf-Z"
@@ -144,10 +144,7 @@ def app(page):
             if v in options:
                 cnt += 1
         if cnt == len(id_to_choice) and nums:
-            if st.button("提出"):
-                day, score, wrongs = calc_score(id_to_choice, id_to_answer)
-                #st.write(day, score, wrongs)
-                record_score(day, score, page, wrongs)
+            submit_answer(id_to_choice, id_to_answer, page)
     else:
         reflection_flag = 1
         if RECORD_FILE_ID:
@@ -167,5 +164,4 @@ def app(page):
             if v in options:
                 cnt += 1
         if cnt == len(id_to_choice) and reflection_ids:
-            if st.button("提出"):
-                calc_score(id_to_choice, id_to_answer)
+            submit_answer(id_to_choice, id_to_answer, page)

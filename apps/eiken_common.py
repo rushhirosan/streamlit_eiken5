@@ -222,6 +222,26 @@ def select_definite_questions(page, ID):
     return set(selected_ids)
 
 
+def submit_answer(id_to_choice, id_to_answer, page):
+    if 'submit_pressed' not in st.session_state:
+        st.session_state.submit_pressed = False
+
+    # ボタンがまだ押されていない場合のみ表示
+    if not st.session_state.submit_pressed:
+        if st.button("提出", key=f"submit_button_" + page):
+            # スコアの計算やデータの記録をここで行う
+            if page is not None:
+                day, score, wrongs = calc_score(id_to_choice, id_to_answer)
+                record_score(day, score, page, wrongs)
+            else:
+                calc_score(id_to_choice, id_to_answer)
+
+            # ボタンが押されたことを記録
+            st.session_state.submit_pressed = True
+    else:
+        st.warning("同じ問題に２度提出できません。もう一度提出するにはページを切り替えてください。")
+
+
 def load_problem(ID, page):
 
     choice = select_question_kind()[:1]
@@ -254,10 +274,8 @@ def load_problem(ID, page):
             if v in options:
                 cnt += 1
         if cnt == len(id_to_choice) and nums:
-            if st.button("提出"):
-                day, score, wrongs = calc_score(id_to_choice, id_to_answer)
-                #st.write(day, score, wrongs)
-                record_score(day, score, page, wrongs)
+            submit_answer(id_to_choice, id_to_answer, page)
+
     else:
         reflection_flag = 1
         if RECORD_FILE_ID:
@@ -277,5 +295,5 @@ def load_problem(ID, page):
             if v in options:
                 cnt += 1
         if cnt == len(id_to_choice) and reflection_ids:
-            if st.button("提出"):
-                calc_score(id_to_choice, id_to_answer)
+            submit_answer(id_to_choice, id_to_answer, page)
+                #calc_score(id_to_choice, id_to_answer)
