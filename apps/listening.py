@@ -102,6 +102,17 @@ def display_listening_question(question_index, row, file_map, reflection_flag):
 #     )
 #     return choice[:1]  # 選択肢の頭文字 (A, B, C, D) を返す
 
+def count_valid_choices(id_to_choice, options):
+    """Count the number of valid choices provided by the user."""
+    return sum(1 for v in id_to_choice.values() if v in options)
+
+
+def initialize_session(page):
+    """Initialize session state if it's the first time the page is loaded."""
+    if "page_initialized" not in st.session_state or st.session_state.page_initialized != page:
+        st.session_state.clear()
+        st.session_state.page_initialized = page
+
 
 def app(page):
     st.title(f"英検{page}問題")
@@ -115,10 +126,7 @@ def app(page):
 
     options = ["A", "B", "C", "D"]
 
-    # ページが初めて読み込まれたときのみセッションをクリアする
-    if "page_initialized" not in st.session_state or st.session_state.page_initialized != page:
-        st.session_state.clear()
-        st.session_state.page_initialized = page
+    initialize_session(page)
 
     file_map = list_files_in_folder(FOLDER_ID)
 
@@ -139,11 +147,7 @@ def app(page):
                 choice = display_listening_question(index, row, file_map, reflection_flag)
                 id_to_choice[int(row["問題ID"]) - 1] = choice
 
-        cnt = 0
-        for k, v in id_to_choice.items():
-            if v in options:
-                cnt += 1
-        if cnt == len(id_to_choice) and nums:
+        if count_valid_choices(id_to_choice, options) == len(id_to_choice) and nums:
             submit_answer(id_to_choice, id_to_answer, page)
     else:
         reflection_flag = 1
@@ -159,9 +163,5 @@ def app(page):
                 choice = display_listening_question(index, row, file_map, reflection_flag)
                 id_to_choice[int(row["問題ID"]) - 1] = choice
 
-        cnt = 0
-        for k, v in id_to_choice.items():
-            if v in options:
-                cnt += 1
-        if cnt == len(id_to_choice) and reflection_ids:
+        if count_valid_choices(id_to_choice, options) == len(id_to_choice) and reflection_ids:
             submit_answer(id_to_choice, id_to_answer, page)
