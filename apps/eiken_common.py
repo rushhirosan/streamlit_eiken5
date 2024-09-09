@@ -169,6 +169,14 @@ def select_question_kind():
 
 
 def parse_wrongs(wrongs_str):
+    # もしwrongs_strが空なら空のリストを返す
+    if not wrongs_str:
+        return []
+
+    # wrongs_strが数値の場合は、リストに変換して返す
+    if isinstance(wrongs_str, (int, float)):
+        return [int(wrongs_str)]
+
     # 文字列をカンマで分割し、リストに変換
     return [int(x.strip()) for x in wrongs_str.split(',') if x.strip().isdigit()]
 
