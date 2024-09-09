@@ -1,8 +1,4 @@
 import streamlit as st
-import sys
-import os
-sys.path.append(os.path.dirname(__file__))
-
 from eiken_common import load_problem
 
 PROBLEM_FILE_ID = "14PmuhBLAv54cUmYeQfo2BqwJHe8FQWUIaZAoJry78So"
