@@ -1,5 +1,9 @@
 import streamlit as st
 import pandas as pd
+import sys
+import os
+sys.path.append(os.path.dirname(__file__))
+
 from collections import defaultdict
 from eiken_common import load_csv_file, select_num_questions, select_question_kind, select_definite_questions, \
     calc_score, record_score, RECORD_FILE_ID
