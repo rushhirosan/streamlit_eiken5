@@ -6,7 +6,7 @@ sys.path.append(os.path.dirname(__file__))
 
 from collections import defaultdict
 from eiken_common import load_csv_file, select_num_questions, \
-    select_question_kind, select_definite_questions, RECORD_FILE_ID, submit_answer
+    select_question_kind, select_definite_questions, submit_answer
 
 # 定数
 SYMBOL = "_"
