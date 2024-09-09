@@ -55,10 +55,7 @@ def delete_rows():
 
 
 def delete_confirm():
-    """スコアの保存されたファイルを削除する"""
-    confirm_delete = st.button("成果を削除してリスタートする")
-
-    if confirm_delete:
+    if st.button("成果を削除してリスタートする"):
         delete_rows()
 
 
@@ -80,5 +77,4 @@ def app(page):
             st.write("まだスコアが保存されていません。")
     except FileNotFoundError:
         st.write("まだスコアが保存されていません。")
-
     delete_confirm()

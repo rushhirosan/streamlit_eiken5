@@ -51,60 +51,41 @@ def display_ordering_question(question_index, row, reflection_flag):
 
 
 def app(page):
-
     st.title(f"英検{page}問題")
     st.write("選択肢から解答を選択してください📝")
 
-    choice = select_question_kind()[:1]
-    reflection_flag = 0
-    id_to_answer = defaultdict(int)
-    id_to_choice = defaultdict(int)
-
-    # ページが初めて読み込まれたときのみセッションをクリアする
+    # セッションの初期化
     if "page_initialized" not in st.session_state or st.session_state.page_initialized != page:
         st.session_state.clear()
         st.session_state.page_initialized = page
 
-    if choice == "A":
-        nums = select_num_questions()
-        if PROBLEM_FILE_ID:
-            data = pd.DataFrame(load_csv_file(PROBLEM_FILE_ID))
+    choice = select_question_kind()[:1]
+    reflection_flag = choice != "A"
 
-            # 初回のみデータフレームの行をランダムにシャッフルして保存
-            if "randomized_data" not in st.session_state:
-                st.session_state.randomized_data = data.sample(frac=1).reset_index(drop=True)
-
-            randomized_data = st.session_state.randomized_data[:nums]
-            randomized_data = randomized_data[:nums]
-
-            for index, row in randomized_data.iterrows():
-                id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
-                choice = display_ordering_question(index, row, reflection_flag)
-                id_to_choice[int(row["問題ID"]) - 1] = choice
-
-            ok = True
-            for k, v in id_to_choice.items():
-                if SYMBOL in v:
-                    ok = False
-            if ok and nums:
-                submit_answer(id_to_choice, id_to_answer, page)
-
-    else:
-        reflection_flag = 1
-        if RECORD_FILE_ID:
-            data = load_csv_file(PROBLEM_FILE_ID)
-            data = pd.DataFrame(data)
-
+    # 共通処理: データのロードと初期化
+    data = pd.DataFrame(load_csv_file(PROBLEM_FILE_ID))
+    if reflection_flag:
         reflection_ids = select_definite_questions(page, PROBLEM_FILE_ID)
+        data = data[data["問題ID"].isin(reflection_ids)]
 
-        for index, row in data.iterrows():
-            if row["問題ID"] in reflection_ids:
-                id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
-                choice = display_ordering_question(index, row, reflection_flag)
-                id_to_choice[int(row["問題ID"]) - 1] = choice
-        ok = True
-        for k, v in id_to_choice.items():
-            if SYMBOL in v:
-                ok = False
-        if ok and reflection_ids:
-            submit_answer(id_to_choice, id_to_answer, page)
+    if "randomized_data" not in st.session_state and not reflection_flag:
+        st.session_state.randomized_data = data.sample(frac=1).reset_index(drop=True)
+
+    questions = st.session_state.randomized_data[:select_num_questions()] if not reflection_flag else data
+
+    id_to_answer = defaultdict(int)
+    id_to_choice = defaultdict(int)
+
+    # 問題を処理して解答を収集する
+    for index, row in questions.iterrows():
+        id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
+        choice = display_ordering_question(index, row, reflection_flag)
+        id_to_choice[int(row["問題ID"]) - 1] = choice
+
+    # 全ての解答が選択されているか確認する
+    all_answers_provided = all(SYMBOL not in v for v in id_to_choice.values())
+
+    # 解答の送信
+    if all_answers_provided and len(id_to_choice) > 0:
+        submit_answer(id_to_choice, id_to_answer, page)
+
