@@ -171,7 +171,7 @@ def select_question_kind():
 def parse_wrongs(wrongs_str):
     # もしwrongs_strが空なら空のリストを返す
     if not wrongs_str:
-        return []
+        return ""
 
     # wrongs_strが数値の場合は、リストに変換して返す
     if isinstance(wrongs_str, (int, float)):
