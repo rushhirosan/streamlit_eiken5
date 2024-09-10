@@ -45,7 +45,10 @@ def display_ordering_question(question_index, row, reflection_flag):
         st.warning("選択肢を選んでください。")
 
     # 結果を返却
-    res = option1 + " " + option2 + " " + option3 + " " + option4 + "."
+    if row["正解"][-1] == ".":
+        res = option1 + " " + option2 + " " + option3 + " " + option4 + "."
+    else:
+        res = option1 + " " + option2 + " " + option3 + " " + option4 + "?"
     st.write(res)
     return res
 
