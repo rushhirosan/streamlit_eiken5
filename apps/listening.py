@@ -73,35 +73,6 @@ def display_listening_question(question_index, row, file_map, reflection_flag):
     return choice[:1]
 
 
-# def load_listening_file(file_id):
-#     """Google Drive から音声ファイルをダウンロードし、再生する"""
-#     request = drive_service.files().get_media(fileId=file_id)
-#     file_data = io.BytesIO()
-#     downloader = MediaIoBaseDownload(file_data, request)
-#     done = False
-#     while not done:
-#         status, done = downloader.next_chunk()
-#     file_data.seek(0)
-#     st.audio(file_data, format='audio/mpeg')
-#
-#
-# def display_listening_question(question_index, row, file_map, reflection_flag):
-#     """問題と選択肢を表示し、選択された回答を返す"""
-#     if not reflection_flag:
-#         st.write(f"**問題 {question_index + 1}**")
-#     else:
-#         st.write(f"**問題ID: {question_index + 1}**")
-#     st.write(row['問題文'])
-#     load_listening_file(file_map[f"audio{row['問題ID']}.mp3"])
-#
-#     choice = st.radio(
-#         "選択肢を選んでください:",
-#         [f"A: {row['選択肢A']}", f"B: {row['選択肢B']}", f"C: {row['選択肢C']}", f"D: {row['選択肢D']}"],
-#         key=f"question_{question_index}",
-#         horizontal=True
-#     )
-#     return choice[:1]  # 選択肢の頭文字 (A, B, C, D) を返す
-
 def count_valid_choices(id_to_choice, options):
     """Count the number of valid choices provided by the user."""
     return sum(1 for v in id_to_choice.values() if v in options)
@@ -112,6 +83,22 @@ def initialize_session(page):
     if "page_initialized" not in st.session_state or st.session_state.page_initialized != page:
         st.session_state.clear()
         st.session_state.page_initialized = page
+
+
+def process_questions(questions, file_map, reflection_flag, id_to_answer, id_to_choice):
+    """Process each question, display it, and collect the user's choices."""
+    for index, row in questions.iterrows():
+        id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
+        choice = display_listening_question(index, row, file_map, reflection_flag)
+        id_to_choice[int(row["問題ID"]) - 1] = choice
+
+
+def process_questions_with_reflection(questions, file_map, reflection_ids, reflection_flag, id_to_answer, id_to_choice):
+    for index, row in questions.iterrows():
+        if row["問題ID"] in reflection_ids:
+            id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
+            choice = display_listening_question(index, row, file_map, reflection_flag)
+            id_to_choice[int(row["問題ID"]) - 1] = choice
 
 
 def app(page):
@@ -129,6 +116,7 @@ def app(page):
     initialize_session(page)
 
     file_map = list_files_in_folder(FOLDER_ID)
+    data = []
 
     if choice == "A":
         nums = select_num_questions()
@@ -141,27 +129,17 @@ def app(page):
 
             randomized_data = st.session_state.randomized_data[:nums]
             randomized_data = randomized_data[:nums]
-
-            for index, row in randomized_data.iterrows():
-                id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
-                choice = display_listening_question(index, row, file_map, reflection_flag)
-                id_to_choice[int(row["問題ID"]) - 1] = choice
+            process_questions(randomized_data, file_map, reflection_flag, id_to_answer, id_to_choice)
 
         if count_valid_choices(id_to_choice, options) == len(id_to_choice) and nums:
             submit_answer(id_to_choice, id_to_answer, page)
     else:
         reflection_flag = 1
         if RECORD_FILE_ID:
-            data = load_csv_file(PROBLEM_FILE_ID)
-            data = pd.DataFrame(data)
+            data = pd.DataFrame(load_csv_file(PROBLEM_FILE_ID))
 
         reflection_ids = select_definite_questions(page, PROBLEM_FILE_ID)
-
-        for index, row in data.iterrows():
-            if row["問題ID"] in reflection_ids:
-                id_to_answer[int(row["問題ID"]) - 1] = row["正解"]
-                choice = display_listening_question(index, row, file_map, reflection_flag)
-                id_to_choice[int(row["問題ID"]) - 1] = choice
+        process_questions_with_reflection(data, file_map, reflection_ids, reflection_flag, id_to_answer, id_to_choice)
 
         if count_valid_choices(id_to_choice, options) == len(id_to_choice) and reflection_ids:
             submit_answer(id_to_choice, id_to_answer, page)
