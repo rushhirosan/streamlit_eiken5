@@ -296,4 +296,4 @@ def load_problem(ID, page):
                 cnt += 1
         if cnt == len(id_to_choice) and reflection_ids:
             submit_answer(id_to_choice, id_to_answer, page)
-                #calc_score(id_to_choice, id_to_answer)
+                # calc_score(id_to_choice, id_to_answer)
