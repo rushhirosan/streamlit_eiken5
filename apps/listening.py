@@ -17,10 +17,26 @@ PROBLEM_FILE_ID = '1nHONtGQM2Msy9Wos8O0WaQ1oMnZkiflweqFIaaMOyMU'
 
 def list_files_in_folder(folder_id=None):
     """フォルダ内のファイルをリストし、ファイル名とIDを返す"""
-    query = f"'{folder_id}' in parents" if folder_id else ""
-    results = drive_service.files().list(q=query, fields="files(id, name)").execute()
-    return {item['name']: item['id'] for item in results.get('files', [])}
 
+    # drive_service が初期化されていない場合のエラーメッセージ
+    if drive_service is None:
+        st.error("Google Drive service is not initialized.")
+        return {}  # エラー時は空の辞書を返す
+
+    query = f"'{folder_id}' in parents" if folder_id else ""
+
+    try:
+        results = drive_service.files().list(q=query, fields="files(id, name)").execute()
+        files = results.get('files', [])
+        if files is None:
+            st.error("No files found or an error occurred.")
+            return {}
+
+        return {item['name']: item['id'] for item in files}
+
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
+        return {}
 
 @st.cache_data
 def download_listening_file(file_id):
