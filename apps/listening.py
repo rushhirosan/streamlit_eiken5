@@ -120,7 +120,7 @@ def process_questions_with_reflection(questions, file_map, reflection_ids, refle
 def app(page):
     st.title(f"英検{page}問題")
     st.write("▶ボタンを押して英語を聞いてから、選択肢から解答を選択してください📝")
-    st.write("※ボタンが現れるまで少し時間がかかる場合があります。")
+    st.write("※ボタンが現れるまで少し時間がかかる場合があります。選択した問題数分▶が出たら問題を始めてください。")
 
     choice = select_question_kind()[:1]
     reflection_flag = 0
